@@ -41,12 +41,12 @@ Whole community needs to get better about DRY
 4. Enterprise Puppet 3
 5. Building towards things like continuous delivery
 
-Joe Wagner - Puppet demo
-A new reporting tool with insight on how puppet is configuring your system
-Say you're a sysadmin converting from debian to Red Hat and you
+#### Joe Wagner - Puppet demo
+* A new reporting tool with insight on how puppet is configuring your system
+* Say you're a sysadmin converting from debian to Red Hat and you
 want to make sure mongodb is going to deploy on new Red Hat systems
-Puppet Enterprise console
-  Classes Nodes Resources reporting elements
+* Puppet Enterprise console
+* Classes Nodes Resources reporting elements
 
 #### Puppet Enterprise Demo available for test drives
 Tell Puppet Labs how it sucks, how to improve
@@ -65,7 +65,7 @@ Follow @puppetconf with hashtag #puppetconf
 
 <http://youtube.com/puppetlabsinc>
 
-## Why did we think large scale distrib sys would be easy?
+## Why did we think large scale distributed systems would be easy?
 ### Gordon Rowell
 Google
 <gordonr@google.com>
@@ -286,8 +286,8 @@ Single master can handle ~ 1k nodes
 #### Install HAProxy and configuration is easy peezy:
     listen puppet_00 192.168.1.2:8140
         mode tcp
-	server mypuppetworker1 192.168.1.3:8140 check
-	server mypuppetworker2 192.168.1.4:8140 check
+        server mypuppetworker1 192.168.1.3:8140 check
+        server mypuppetworker2 192.168.1.4:8140 check
 
 * Use Zack's HAProxy module
 
@@ -317,8 +317,10 @@ haproxy -> puppet config workers (vms) -> orchestration (mcollective) -> agent
 
 ### The tech wizardry behind OpenShift
 Puppet, MCollective
-When he started building OpenShift, his bg was IT
-RedHat has been using Puppet since the beginning.
+
+When he started building OpenShift, his background was IT
+
+Red Hat has been using Puppet since the beginning.
 
 #### What is OpenShift?
 Platform as a Service
@@ -341,8 +343,8 @@ Tries to make managing systems easier as well.
 * Needed something volatile that wasn't going to kill operations.
 
 #### OpenShift specific terms
-* Gears = "Containers"
-* Cartridges = "Code running in a container"
+* Gears == "Containers"
+* Cartridges == "Code running in a container"
 
 ### Container to OpenShift
 * Kernel namespace segmentation
@@ -374,6 +376,7 @@ Workload management
 * Not exclusive from VMs, good complement
 
 Virtualization is still relatively heavyweight
+
 Containers powerful for driving density up
 
 OpenStack's challenge was to use AWS business model, but most cost-effective
@@ -412,7 +415,9 @@ Kernel Namespaces <http://bit.ly/WuXpZm>
 ### James Sweeny
 Professional Services Engineer| Puppet Labs
 @jsween_y
-james.sweeny@puppetlabs.com
+
+<james.sweeny@puppetlabs.com>
+
 supercow on irc.freenode.net
 
 
@@ -432,9 +437,11 @@ supercow on irc.freenode.net
 
 
 Basic Windows .msi installation
-msiexec /qn /l*v install.log /i pupet-3.2.4.msi
-INSTALLDIR
-PUPPET_MASTER_SERVER
+
+    msiexec /qn /l*v install.log /i pupet-3.2.4.msi
+
+    INSTALLDIR=...
+    PUPPET_MASTER_SERVER=...
 
 Puppet on Windows works out of a basic service.
 
@@ -447,7 +454,6 @@ Puppet on Windows works out of a basic service.
     * puppet\etc
       * puppet.conf
       * ssl data <- directory to delete for puppet cert regen
-
 
 * Goes over Puppet architecture, RAL
 * Basic puppet code example
@@ -489,12 +495,12 @@ Need a linux master with linux line endings/paths (no windows masters)
     }
 ```
 
-Think about where code is being evaluated
-File resoure in Puppet will copy everything in binary
-Source engine will copy it down perfectly
-If you have code generating newlines, it will use Linux style line endings
-* Can use the unix2dos utility
-* use separate files between linux and windows machines for templates
+* Think about where code is being evaluated (client or server)
+* File resource in Puppet will copy everything in binary
+* Source engine will copy it down perfectly
+* If you have code generating newlines, it will use Linux style line endings
+    * Can use the unix2dos utility
+    * use separate files between linux and windows machines for templates
 
 #### File Permissions
 * Still specified with Unix-style modes
@@ -510,26 +516,30 @@ If you have code generating newlines, it will use Linux style line endings
 ```
 
 Pretend WIndows is case sensitive with your Puppet code
+
 No way to set SID
 
 #### Exec Resource
-exec {'iisreset':
-  path => 'C:/WINDOWS/System32',
-  refreshonly => true,
-}
-
-
-* Execs run without a shell
-* If you need shell builti ins
 
 ```ruby
-command => 'cmd \c ...',
+    exec {'iisreset':
+      path => 'C:/WINDOWS/System32',
+      refreshonly => true,
+    }
+```
+
+* Execs run without a shell
+* If you need shell built-ins
+
+```ruby
+    command => 'cmd \c ...',
 ```
 
 #### Puppet runs in 32-bit on Windows
 Workaround is sysnative directory
-%WINDIR%\Sysnative
-%WINDIR%\System32
+
+    %WINDIR%\Sysnative
+    %WINDIR%\System32
 
 ```ruby
     $psh_cmd = 'powershell.exe -ExecutionPolicy RemoteSigned'
@@ -584,6 +594,7 @@ package {'mysql':
 
 ### Chocolatey
 "apt-get for Windows"
+
 <http://chocolatey.org/>
 
 rismoney/chocolatey
@@ -595,11 +606,9 @@ rismoney/chocolatey
     }
 ```
 
-
 puppetlabs/dism
 
-Check OpenTable namespace on PuppetForge
-modules that use native PowerShell
+Check OpenTable namespace on PuppetForge for modules that use native PowerShell
 
 ```ruby
     exec { 'reboot':
@@ -659,29 +668,35 @@ What Windows really needs most is more Puppet providers contributors.
 ## Managing Cisco Devices Using Puppet
 ### Jason Pfeifer - Cisco
 Technical difficulties with the mic
+
 Technical Marketing Engineer | Cisco
+
 Cisco Automation with Puppet and onePK
 
-Leon Zachary, Sunil GV
+#### Leon Zachary, Sunil GV
 
 Evolution of Operational Maturity
 from minimized cost/best effort
 to more of a managed approach (basic SLAs)
+
 fixes from days to hours
+
 tiered domain experts
 
 business operations -> virtual overlay networks
+
 Business today requries
 self service, on demand
 on premise, remote, hybrid cloud
-gith sla
+with sla
+
 good solution with Puppet
 
-
 Let business operations drive the network
-Type 1 automating existing tasks
-Type 2 automating new tasks
-Type 3 automation as integral solution
+
+* Type 1 automating existing tasks
+* Type 2 automating new tasks
+* Type 3 automation as integral solution
 
 Opening up the API, "What if the 'User' is a Software app?"
 
@@ -690,14 +705,16 @@ Opening up the API, "What if the 'User' is a Software app?"
 * New Business Opportunities
 
 APIs Cisco is opening up
-Try to run layers 2-4 through a consistent API cross platform
-Write the same program that behaves the same way
-APIs in C, Java, Python, will support Ruby
-"Cisco ONE Platform Kit" (onePK)
 
+* Try to run layers 2-4 through a consistent API cross platform
+* Write the same program that behaves the same way
+* APIs in C, Java, Python, will support Ruby
+* "Cisco ONE Platform Kit" (onePK)
 
 Architecture slide
+
 API presentation layer ->
+
 API infrastructure {
   catalyst
     nexus
@@ -705,8 +722,11 @@ API infrastructure {
 }
 
 Choose the hosting model that suits your app/platform
+
 allow you to run your applications in multiple locations
+
 run apps directly on blade or router
+
 allows cisco to put applications (agents) on boxes
 
 ### Puppet Agents running directly on Cisco boxes
@@ -714,31 +734,35 @@ allows cisco to put applications (agents) on boxes
 
 
 ## Life and Times of PuppetDB
-Deepak Giridharagopal
+### Deepak Giridharagopal
 <deepak@puppetlabs.com>
+
 @grim_radical
 
 Puppet Master takes facts, generates catalogue, sends to Puppet Agent,
 Puppet Agent applies catalogue and sends Report
-PuppetDB does not throw facts away
+but PuppetDB does not throw facts away
 
 storedconfigs previously used w/ ActiveRecord into MySQL
+
 Didn't work very well
 
 Now you can query PuppetDB
-/nodes/foo.com/resources/User/deepak
+
+    /nodes/foo.com/resources/User/deepak
 
 In order to make PuppetDB super fast (1800 node catalogues on his laptop)
 
 Design decisions:
 1. Asynchrony
-    PuppetDB is supposed to store stuff, and let you query it.
-    CQRS
-      Command
-      Query
-      Responsibility
-      Separation
-    Use a different model to update information than the model you use to read
+    * PuppetDB is supposed to store stuff, and let you query it.
+#### CQRS
+* Command
+* Query
+* Responsibility
+* Separation
+
+Use a different model to update information than the model you use to read
 
     CQRS Write Pipeline
     async, parallel, MQ-parallel
@@ -752,11 +776,12 @@ Design decisions:
 ```
 
 
-/commands -> mq -> parse -> process -> catalog
-                      \      /
-                 Dead Letter Office
+    /commands -> mq -> parse -> process -> catalog
+                          \      /
+                      Dead Letter Office
 
 Dead Letter Office is a bit-for-bit copy of wire communications
+
 Deepak can use data from this directory to replay
 
 #### Command processors must be retry-aware
@@ -764,14 +789,13 @@ expect failure because it will happen
 
 ### Why the JVM?
 PuppetDB needed to be:
-Fast
-Free
-Portable
-Multi-core
-Popular
+* Fast
+* Free
+* Portable
+* Multi-core
+* Popular
 
-
-Tons of high quality libraries
+Tons of high quality libraries for 
 web servers, concurrency frameworks, databases, fast parsing/lexing, clustering
 debugging, profiling, etc.
 
@@ -790,7 +814,6 @@ PuppetDB walks the AST to compile efficient SQL
 
 AST-based API lets users write their own languages
 
-
 Erik Dalen of Spotify
 
 <http://github.com/erikdalen/puppet-puppetdbquery>
@@ -801,50 +824,56 @@ daenny, Puppetboard:
 <http://github.com/nedoap/puppetboard>
 
 
-Foreman Integration (CERN)
+#### Foreman Integration (CERN)
 <http://github.com/cernops>
+
 <http://github.com/dm-puppetdb-adapter> ORM for Ruby talks directly to PuppetDB via Ruby code
+
 hiera backend so they can use hiera lookups to yank data out of PuppetDB
+
 ripienaar/ruby-puppetdb
 
 Bindings for Java, Go, Scala, CoffeeScript, Node.js, MCollective, Rundeck
+
 OpenStack bodepd/puppet-openstack_puppetdb
-vagrant
+
 grahamgilbert/vagrant-puppetmaster
+
 evenup/evenup-pdns
 
 ### Boring technology
-Relational Database backend
-embedded or PostgreSQL
-arrays, recursive queries, indexing inside complex structures
+* Relational Database backend
+* embedded or PostgreSQL
+* arrays, recursive queries, indexing inside complex structures
 
 ### Weird Alien Technology
-Wrote it in Clojure
-  Functional language
-  No locking
-  0 bugs related to deadlocks, 0 bugs involving mutable state
-  companion Ruby code has ~10x the defect rate.
+* Wrote it in Clojure
+* Functional language
+* No locking
+* 0 bugs related to deadlocks, 0 bugs involving mutable state
+* companion Ruby code has ~10x the defect rate.
 
 7k lines of Clojure code.
 
 ### Conjectures about performance
 resource often exists across multiple hosts
+
 single instance resource storage
 
 #### Posit
 We'll often receive the same catalog for a host
+
 In the field, we almost always see Resource and catalog duplication rates of 85%
 
 Should be able to get metrics on how volatile your environment is.
 
 Users want easy ways to consume metrics and analyze performance.
 
-jasonhancock/nagios-puppetdb
-puppetdb-external-naginator
-munin_puppetdb
-puppetdb-muninplugins
-mfournier collectd
-
+* jasonhancock/nagios-puppetdb
+* puppetdb-external-naginator
+* munin_puppetdb
+* puppetdb-muninplugins
+* mfournier collectd
 
 ### Thousands of Production Deployments
 
@@ -864,10 +893,10 @@ mfournier collectd
 * Backup and restore now integrated into daemon, can restore while PuppetDB is running.
 
 #### V2 API
-no need to ask for only active nodes
-full fact queries instead of just a list of facts
-node metadata
-exploration-friendly
+* no need to ask for only active nodes
+* full fact queries instead of just a list of facts
+* node metadata
+* exploration-friendly
 
 #### Wildcard Accept Headers
 
