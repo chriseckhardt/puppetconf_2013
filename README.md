@@ -11,7 +11,7 @@ Identified challenges in cultural shifts needed at companies who need config
 management but can't figure out how to implement.
 
 PuppetConf 2012 largest complaint was "not enough time to see all the talks."
-1.2m forge downloads.
+* 1.2m forge downloads.
 
 #### Contributors to Puppet Highlighted
 * Derek Elan of Spotify
@@ -30,9 +30,12 @@ Nod to VMWare
 
 #### Description of a new kind of administrator
 Moving from vertical silos to horizontal abstractions
+
 Level up from technology to applications
+
 Whole community needs to get better about DRY
-2 major problems with adopting companies, want agility & culture change
+
+2 major problems with adopting companies, want agility & culture change.
 
 * X-Wing strategy
 1. Making the core better
@@ -136,6 +139,7 @@ if you haven't given soak time to test "canary" clusters that can go wrong,
 you're not doing the right thing for application owners
 
 Stage rollouts, allow soak time.
+
 Does it look good odn an almost-prod cluster 3 days/week later on prod traffic?
 
 #### Load Balancing is fun
@@ -284,6 +288,7 @@ Single master can handle ~ 1k nodes
 * each worker needs to accept dns name going to be used
 
 #### Install HAProxy and configuration is easy peezy:
+
     listen puppet_00 192.168.1.2:8140
         mode tcp
         server mypuppetworker1 192.168.1.3:8140 check
@@ -302,11 +307,16 @@ haproxy -> puppet config workers (vms) -> orchestration (mcollective) -> agent
 
 ### Q & A
 * GlusterFS for PuppetCA - how to replicate /var/lib/puppet/ssl across masters?
-    rsync works
+
+_rsync works_
+
 * Proxied ssl request from master nodes to CA; not have agent config to ca_server?
-    can do what works
+
+_can do what works_
+
 * Why go from FOSS to PE?
-    a: nice to have everything pre-packaged + Puppet Labs' support.
+
+_nice to have everything pre-packaged + Puppet Labs' support_
 
 
 ## Puppet Labs Powered OpenShift
@@ -323,9 +333,12 @@ When he started building OpenShift, his background was IT
 Red Hat has been using Puppet since the beginning.
 
 #### What is OpenShift?
-Platform as a Service
+* Platform as a Service
+
 If you're on the app dev side, they try to make it magically easy
+
 One of the differences it's not only hosted.
+
 Tries to make managing systems easier as well.
 
 ```ruby
@@ -391,8 +404,11 @@ MCollective -> Setup new container
 * Control: Limit the applicable commands.
 
 Don't want a distributed root account to expose control.
+
 Puppet -> Setup new VM
+
 MCollective -> Setup new container
+
 MCollective -> Interact w/ Container
 
 
@@ -407,11 +423,12 @@ Kernel Namespaces <http://bit.ly/WuXpZm>
 
 ### Q & A
 * What point will it tip over and fall?
-  Broadcast paradigm consuming more latency than needed
+_Broadcast paradigm consuming more latency than needed_
 
 
 ## Managing Windows with Puppet
 2:20pm
+
 ### James Sweeny
 Professional Services Engineer| Puppet Labs
 @jsween_y
@@ -924,4 +941,772 @@ consistency.
 More flexible routing is coming, allowing soft failures and read/write splits:
 * log errors and continue
 * write to one puppetdb, read from another
+
+
+# PuppetConf 2013
+## Friday 23 Aug 2013
+Remembered my recharge cables today.
+
+### Design Pattern
+modules are atomic
+role, library
+use puppet librarian
+cooperative modules
+  build loosely coupled odules that can work together if installed together
+  but can work on their own
+
+will try to push deps into puppet instead of rpm
+rpm packaging works fine for deploying to puppet masters
+modules are good for 4am provisioning
+
+transparency and simplicity if everything is in the Puppet manifest
+
+Composition trumps inheritance
+
+Same Puppet code used from dev -> test -> staging -> prod
+everybody works off same modules
+
+Cisco is hiring
+
+
+### Stan Hsu Sr dev manager PayPal
+Puppet at scale study of paypal's learnings
+With Harendra Narayan
+
+* PayPal part of eBay Inc
+132 million active registered accounts
+25 currencies in 193 markets
+net tootal payment vol $43B in Q2
+7.6 million payments per day
+
+$5,277 in total payment volume every second
+
+### The challenge
+* build anew system for deploying app/sys software
+* massive scale in production across multiple data centers
+* 3000 devs QE in 10+ offices across time zones and geographic regions
+
+
+Stores in MongoDB
+created a web API in REST any tool in the data center can leverage their tool
+they integrated with openstack
+
+cloud portal -> openstack -> flame icon -> 
+
+1. enter label, application, size (20, 50, 1000 deps on what type of app)
+2. Click Go, key orchestration stack provisions VM, configures load balancer,
+   adds to DNS, verifiecation checks
+3. Stored in hiera database (Mongo)
+4. Register with Puppet
+6. Deploy API will download appropriate packages, install and configure.
+Fully automated.  User enters info on step 1, all the infrastructure is spun up
+within a minute.  "Project Velocity"
+
+#### Challenges
+* traditional 1 app 1 module does not scale
+* high velocity env with increasing speed of change
+  * new pkgs sunset pkgs dep changes dev staff opperating 24x5
+* Lack of puppet expertise to complement 3000+ technology
+
+Is it possible to create a system where Puppet coding is not required for
+deploying applications?
+
+You give a list of applications you want to install
+* get list of packages
+* autodiscover dependencies
+* generate necessary puppet resources looking at the dependency graph
+* execute deployment
+
+To optimize it, they cache this, so next time they install the application all
+the code is available in memory for quick lookup.
+
+Break out sessions with more detail later today
+
+### Roles & Labels
+* Role
+1 role per pool
+define a set of packages to install
+
+* Label
+a set of versioned packages
+backed by a yum repository
+
+Label gets placed in line for deployment.
+Pools are just a list of VMs servicing functions.
+abWeb role pool receives aWeb and bWeb packages
+abSvc role pool receives aSvc and bSvc package
+
+Hosts receive versioned packages based on Label
+
+### System Hierarchy
+Harendra Narayan
+
+PayPal uses hierarchy
+
+env {
+  geo {
+    dc {
+      pool {
+	host
+      }
+    }
+  }
+}
+
+They store classes on each of the nodes.  Whenever they want to look for a 
+Puppet class applied to a host, they can traverse the tree.
+
+### Scaling ActiveMQ
+activemq clients -> load balancer -> activemq cluster
+
+MCollective wanted long connection, load balancer would time out and terminate
+connections.
+
+now they connect activemq clients directly to activemq cluster
+
+### MCollective at Scale
+#### query systems through facts, agents, or regex
+#### Verify package versions in all systems for simple audits
+MCollective has replaced all the SSH scripts, now if they want to query boxes
+for what version of a package it has on all packages, they can run a simple mco
+query and check state of packages.  Same w/ facts "how may machines have this
+or that" easily retrieved via MCollective.  OPs loves it.
+* SSH script replacement
+
+####  kick off puppet runs
+Also use MCollective to kick off Puppet on demand.
+* REST API enables MCollective to web and other tools
+
+Large number of apps/services -> real time status updates of puppet runs
+
+"Why is it taking so long?  ETA?
+Using MCollective to monitor deployment status
+* They want to make sure system packages are in sync
+* PayPal worked with Puppet Labs to create Puppet Progress module
+Every time puppet processes a resource it will send a message back to AMQ and
+tell if the process failed or if in sync.
+
+Sample update message 
+```json
+{
+  "host" "blah",
+    "time": "Zulu",
+    "type": "puppet_run",
+    "catalog_version": 12345,
+    "puppet_run_status": "running":,
+    "package: {
+      "status": "successful",
+      "name": "axis"
+    }
+}
+```
+
+progress_mq on GitHub
+
+
+## VMWare vCHS Puppet and Project Zombie
+Nick Weaver
+Cloud Automation Architect, Hybrid Cloud Service | VMWare
+@lynxbat
+nickapedia.com
+linkedin.com/in/nicholasweaver
+
+What is vCloud Hybrid Service?
+IaaS cloud owned and operated by VMWare based on VMWare software
+
+Any application... No Changes
+
+
+Launching a public infrastructure service
+will give network connectivity
+give common management
+if you have stuff in your infr that runs in vmware, moving to cloud will run
+same SLA, same tools
+
+Nick's job == Automation
+
+"Automation is Effort Evolution"
+
+Why is automation important for vCHS?
+
+### Project Zombie
+Needed an automation to scale out cloud offerings at VMWare;
+what key principles were needed?
+
+* Scalability
+need to build something for scale, horizontal all the way across
+* Extensibility
+got to live with this solution need to expose it so they can enable more than
+just ops to use that tool.  Multiplies the benefit for everyone.
+* Simplicity
+cannot build on automation platform that takes 10 hours of manual configuration
+
+"I'll just do it myself."
+
+* Resiliency
+Reliability is highly tuned athlete.
+Betting on based on behaviors observed
+Difference with resiliency, you expect things to fail.
+Plan for Failure.  Never make assumptions things will ever stay in place.
+
+#### "Automation framework you cannot kill."
+Puppet had critical pieces w/ MCollective and VMWare support
+
+"Puppet was the right choice for what VMWare wanted to do."
+
+Zombie runs on Cassandra, JRuby, RabbitMQ
+
+Built a distributed resource management system
+
+Built distributed locking system.
+
+
+Rez is the refridgerator, their engine is "the chef"
+
+"Needed Puppet Runs at concurrency scale."
+
+#### Zombie Engine DSL = ZED
+Zed lets an ops person say "do this concurrently then wait for..."
+
+Gives management of different types of execution
+
+Call OVFTool via Puppet -> check report/wait report
+
+Can distribute work across multiple nodes/datacenters globally
+
+Modularized in a way, can add Compute cluster to cloud.
+
+talks to Rez, gets compute, talks to Razor, comes back, talks to Puppet
+take this build server from Razor and add it.
+
+Created an operational language without needing to know Ruby/Java
+
+Load up your Zed code into engine, action can be called immediately from API
+
+REST API endpoint can be called dynamically. Horizontally scales.
+
+### Why VMWare uses Puppet
+13 in-house Puppet Modules so far
+vCloud Director
+vShield networking
+vSphere
+
+total of 47 modules for everything
+puppet modules for installing zombie in production, integration, and
+development (including vagrant + puppet use for laptops)
+project zombie itself uses Puppet to push and do stuff, puppet outside zombie
+to push out zombie/update.  "A Puppet sandwich"
+
+Can stage environments with MCollective.
+update that env through job execution
+can apply env against target at a time
+
+To a fully built stack, take 72 man hours, 6 days delivery
+
+Project Zombie launched and moved it to 1.5 man hours to 2.5 hour delivery
+
+Primarily testing, minor configs
+
+entire job run from call API to complete = 1 hour
+
+turned 4-5 days of human effort to 1hr of hands off
+
+#### details for nerds
+120 tasks (pluign calls)
+3000 config points
+1400 managed resources
+dynamically sized (pick the # of compute and storage)
+controls: vCloud director, vCenter, ESXi, EMC VX, Razor, vShield Manager,
+  vShield Edge, Linux, Windows OS all in the right order, concurrent,
+  distributed, in 1 hr.
+
+Puppet will work just as well outside vCHS as well as inside data center
+
+VMware believes its something that should be available to all web stacks.
+
+### Matt Lodge VMWare with Luke Kanies
+key thing vmware wanted to do is make it easy to bring existing apps and build
+it together.
+
+LK: Why Puppet?
+ML: because it solves an incredibly difficult problem of config management
+Puppet helps SLA to market
+What they wanted to do is move quickly
+Very rapid expansion plans
+
+
+## More Logstash Awesome
+Jordan Sissel
+@jordansissel
+
+Majority maintainer of LogStash
+Continuation of PuppetConf 2012 Logstash talk
+
+"I get angry at computers."
+
+### Hate-driven development
+Take that sour feeling that computers have ruined everything
+
+'#hugops'
+amazon had an outage, github ddossed, instead of being angry at these things,
+express "you're having a crappy day, let's hug it out"
+
+#### Agenda
+* open source and community
+* what is a log?
+* what's new in logstash?
+* logstash ecosystem news
+
+"open [in open source] means community"
+
+One of the things you shouldn't do is tell new users "You're doing it wrong, RTFM"
+#### If a new user has a bad time, it's a bug.
+
+Documentation isn't perfect.
+
+Goes over example of apache logs, variances with syslog, ntpd log...etc.
+
+    time + data = log
+
+### What is LogStash?
+* takes logs from anywhere (input)
+* parse, process, or combine logs (filter)
+* ship them somewhere else (ouptut)
+...in real time
+
+
+Logstash should be:
+* fast
+* easy to learn
+* easy to deploy
+  If it feels slow, there's something wrong.
+* easy to operate
+* easy to extend
+
+
+If you find it isn't fast and easy to use, then it's a bug (and we can fix it).
+
+logstash 1.2 release Sep 1
+
+125 plugins so far
+
+For any given task, if there is a need to transmit logs from 1 location to
+another there's a good chance logstash has a plugin.
+
+Speed is way up
+* 3.5x higher event rate
+* dramatically faster startup time
+
+### New Features
+* Conditionals
+
+```ruby
+  output {
+    # notify nagios on http 5x's
+    # for events with a 'status' field
+    if [status ] == '500' {
+     email { to => "ops_loves_email@example.com" } 
+    }
+```
+
+* new json schema
+  smaller in size, easier to integrate with
+
+LogStash web, first attempt at a web UI
+"It's ok, not good."
+
+### Kibana
+* LogStash web is dead and gone
+* Kibana comes with LogStash 1.2
+
+### Ecosystem
+Tools that LogStash uses or built around LogStash
+* elasticsearch
+can take very high data rates and scalable, just throw another machine in.
+strong community (leslie)
+
+Smaller memory footprint, enables compression by default.
+
+
+* Kibana
+  * What logstash web should have been
+  * Different types of charts, themes, maps
+  * Filter in logstash to do a lookup to find coordinates for data
+
+Start with input data from logs, then visualize it in Kibana.
+
+### LogStash with Puppet
+LogStash puppet module is umbrella'ed under LogStash project
+* versioned
+* tested
+
+Puppet DSL lines up really well with logstash data model
+
+<http://grokdebug.herokuapp.com>
+
+    %{SYSLOGBASE} <(?<level>\w_)> *%{GREEDYDATA:message}
+
+```json
+    {
+      "timestamp": "Aug 16 13:01:51",
+      "logsource": "pork",
+      "program": "NetworkManager"
+      "pid": "820",
+      "level": "info",
+      "message": "address 192.168.1.109"
+    }
+```
+
+Can start with a sample log and have grok figure out a pattern to watch.
+
+* expiring old logs
+Can do time-based or disk-storage-based arguments for data retention
+
+    # Quickly delete logs older than 90 days
+    
+
+### Quick demo of Kibana
+
+
+### Q & A
+* Support for Thrift?
+_Nobody has submitted one._
+
+* Metrics filter labeled beta?
+_the label chosen for plugin status was poorly chosen.  In the next version of
+logstash, they're just numbers, with definitions for what the numbers mean.
+Benefits of numbers is. There are no tests for it yet, so he's not comfortable
+moving out of beta title._
+
+* Multiline support in grokdebug?
+_If your question is 'can we make it do something' I will respond, 'if it's a
+computer we can make it do what we want.'_
+
+Kibana not intended for highly technical people primarily, so it has a web
+interface.
+
+* How can we keep logstash cookbook up to date better?
+_"wiki means to me, where documentation goes to die."_
+Why it's called a cookbook instaed of a wiki
+_Would like to see more examples._
+<http://cookbook.logstash.net>
+
+<http://logstash.jira.com/>
+
+#### Kibana Demo
+"Show me the top IRC talkers in the past 2 days"
+
+Business folks don't want to see raw logs, they want to see visualization of
+trends.
+
+We should make systems that are easier to use that don't depend on meatspace.
+
+Learning a query language is a b.s. proposal
+If you're writing a complex search query, that's a bug or a feature that should
+exist.
+
+
+## Automating VMware Vsphere with Puppet
+* Got to conference room too late, standing room only
+* Still working on proof of concept
+* Not available for public consumption yet
+Hard to see slides or hear presentation from back of room.  Went to CERN
+presentation on OpenStack
+
+
+## A One Stop Solution for Puppet and OpenStack
+### Daniel Lobato Garcia | CERN
+CERN using Puppet Foreman
+"Foreman is our tool for building servers"
+
+    Foreman Proxy {
+      IPMI {
+        Physical Box
+      }
+    }
+
+CERN uses an API wrapper internally that may be open sourced eventually
+
+### OpenStack VM Creation
+new()
+{
+  set up compute instance
+}
+
+#### Scalability experiences
+* Split up services
+* Puppet critical vs noncritical
+
+    12 backend nodes Batch
+    4 backend nodes interactive
+
+* autoscale via alarms (heat)
+* define situations (load threshold...)
+* spin up VMs as necessary
+
+Do not server large files over Puppet.
+
+That's what repositories are for!
+
+### Q & A
+* Using their own monitoring system based on Ganglia and Nagios
+
+
+## Windows: Having Its Ass Kicked by Puppet and Paurshell since 2012
+* PaurShell
+the northern irish pronunciation of the windows based task orchestration tool
+Developer for OpenTable
+Member of Jetbrains Dev Academy
+DevOps Extremist
+
+### Agenda
+* classic infr mgmt
+* snowflakes
+* infrastructure
+* powershell as a way to manage Windows
+* How Puppet kicks its ass
+
+"The Run book"
+RHEL 5 Installation Guide 416 pages
+
+People are generally rubbish at performing manual repetitive tasks.
+
+
+### Snowflake Servers
+Martin Fowler said that snowflake servers are things you have no control over
+been in production a long time, don't know how they'll react.
+
+Machines are much more reliable at performing repetitive tasks.
+
+Very important we don't run our machines at 100%
+
+### Infrastructure at Code
+If we can automate things, we can code them.
+
+### Phoenix Serves
+completely destroyed and brought back from Scratch
+
+### Chaos Monkey
+
+Chad Fowler wrote about 
+### Immutable infrastructure
+Comes from the idea of running servers in prod for a long time.
+If they make a deployment push, they bring it up from scratch.
+Concept comes from functional programming.
+
+Puppet has Geppetto, RubyMine, IntelliJ
+Testing with puppet lint, rspec, huge community
+Generally better you can store your infrastructure in the same place you store
+your application.  Can version it, tie it to app versions, code is generally
+better.
+
+### What can we do with Windows?
+CFEngine, Puppet, Chef, Ansible, Salt, all built on Linux
+
+Windows has Powershell
+
+Powershell 1 was complete horsecrap.
+
+Powershell 2 was a lot better, RPC control.
+
+Powershell 3 came along.
+
+Powershell 4 destroyed it with "desired state configuration."  Another layer of
+abstraction over something that's simple to write.
+
+### Managing Windows Server 2008 with PowerShell
+Presentation demo run on his macbook.
+
+When PowerShell 3 came out, MS came out with a clean API.
+
+If you try and add a feature that is already on a server, it doesn't do
+anything.  Just says the server's there.
+
+Not difficult problems to solve, up until the 2 years ago Windows community
+hasn't done a lot to solve them.
+
+Goes over Chocolatey for a bit
+
+Live Demo: destroyed and rebuilt a qa server using PowerShell 3 in seconds
+
+### Puppet on Windows
+Been around since Puppet 2.7.6
+
+Getting better, but still nascient.
+
+Not all the types from linux side are available in Windows.
+
+Limited in functionality.
+
+Lots of exec statements, not the best way to write modules.
+
+Need to convert execs to custom Types.
+
+#### Puppet + PowerShell = Windows Tap Out
+OpenTable will be open sourcing a lot of their Windows Puppet Modules to the
+Forge.
+
+Going to run from a base, newly provisioned Windows Server 2008 with just
+Puppet installed, via a VPN connection to his box in London.
+
+Somebody mentioned SCCM, crowd laughs.
+
+
+
+## BOXEN
+Will Farrengton
+@wfarr
+
+### Inventing on Principle
+Presentation to look up
+
+Throwing out preconceptions on how things work now, and how things could work
+back at the beginning.
+
+_What in the hell is my principle?_
+
+Developing Software is hard
+
+Painful software creates friction
+
+Friction gets between product and user
+
+"Software should get out of the way."
+
+GitHub statement = _Help ppl design, build, and ship software better, together._
+
+Need more porcelain to enable ppl to ship
+
+Shipping isn't just for software.  Legal team ships a takedown, HR ships a
+policy, can't just treat it as a software design problem exclusively.
+
+### Enable
+How?
+
+"We need a mission statement."
+
+TAFT - Test All The Fucking Time
+
+Need to be able to throw your code spike away and go back to TDD
+
+_"Whatever you do, make sure you are testing, because if you aren't, all you
+are doing is making it harder for yourself when you revisit the code and making
+it even harder..."
+
+
+"Whatever you do make sure you are automating because if you aren't all you are
+doing is making it harder for yourself when you revisit hte problem and making
+it even harder for the next person..."
+
+AUTOMATE PROBLEM REPRODUCE SOLUTION
+
+AUTOMATING SOLUTIONS TO PROBLEMS LEADS TO REPRODUCIBLE SOLUTIONS WHICH ARE
+EASIER THAN SOVLING PROBLEMS UNIQUELY EACH TIME FOR EVERYONE
+
+AUTOMATE ALL THE FUCKING THINGS
+
+### Work in Environments
+There are ppl in GitHub who don't work in Rails.
+
+There are ppl who do work in Rails.
+
+Aiming for a higher level of abstraction.
+
+How do you describe a workflow for an environment?
+
+We know a thing about development environments.
+
+But we are clueless when it comes to empoweirng ppl outside developer space.
+
+"non-technical" ppl are very technical ppl who are specialized in their own
+skills.  Devs cannot do what lawyers/HR does as well as they do.
+
+We need to understand different kinds of environments and then make them better
+with automation.
+
+Saying they should use "our tools" is a cop-out.
+
+It's about finding tools that enable a better workflow.
+
+### Shippers work on projects
+github/github
+* long-lived piece of software
+
+```bash
+    $ boxen github
+```
+    
+...
+now Jill developer can work on GitHub.
+
+What about everybody in finance?
+
+class projects::financial_audit {
+  # ???
+}
+
+### Shippers need different things
+Arrive at a better level of abstraction for everybody.
+
+### Shippers deserve to be happy
+
+
+### Shippers really like...
+How are we going to improve Boxen
+
+* OS X 10.9 "Mavericks" Support
+* No manual XCode installation required
+* 10.9 has shims installed for CLI dev tools
+
+Hiera everywhere
+
+All boxens are designed with Hiera
+
+* Updating modules to get a new version of X sucks.
+* Trying to run a service on a different port sucks.
+* YAML changes are more approachable than Puppet
+
+More core modules will get support over time
+* DNS mask, MySQL, PG
+Trying to figure out how to make some things, making multiple instances of
+e.g., Redis server running.
+
+* PuppetMaster Support
+Use PuppetMaster in context of their Boxen environment.
+
+### HENSON
+librarian-puppet is not the greatest piece of software.
+author is co-writing Henson.
+
+librarian-puppet "works"ish (sort of)
+
+Librarian makes a lot of assumptions that don't fit Puppet's use cases.
+
+Not extensible.  Not a very good library.
+
+Henson is not a dead project.
+
+Rodjek is also working on it.
+
+Ruby, stdlib only, no dependencies.  Local caching and block file work still
+needed.
+
+Some other priorities needed their attn first.
+
+### Closing Thoughts
+* Boxen is not perfect
+* made lives easier at GitHub
+* might make your life easier
+* Don't use it because there's a big name attached.
+
+### Q & A
+* Why did they go with Puppetfile instead of Modulefile?
+_They want boxen to be used by the Modulefile itself eventually, avoid
+different behavior between Puppet and Boxen with Modulefile_
+
+Puppet module will be split out of Puppet core and its own tool again according
+to Puppet Labs.
+
+Rumor Modulefile may be going away, eventually replaced by metadata.json file.
+
 
